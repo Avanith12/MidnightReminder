@@ -12,8 +12,14 @@ export interface ReminderCheckerOptions {
 }
 
 export interface ReminderChecker {
-  /** Runs one check. Returns true when a reminder was emitted. */
-  check(): boolean;
+  /**
+   * Runs one check. Returns true when a reminder was emitted.
+   *
+   * @param at Optional simulated local time. When omitted the checker uses the
+   *   injected clock (or the real wall clock), so the manual command can demo
+   *   a specific moment without waiting for it.
+   */
+  check(at?: Date): boolean;
   /** Local day key of the last emitted reminder (for inspection/tests). */
   lastRemindedDayKey(): string | null;
 }
@@ -33,8 +39,8 @@ export function createReminderChecker(options: ReminderCheckerOptions): Reminder
   let lastRemindedDayKey: string | null = null;
 
   return {
-    check(): boolean {
-      const current = now();
+    check(at?: Date): boolean {
+      const current = at ?? now();
       if (!shouldRemind(current, lastRemindedDayKey)) {
         return false;
       }

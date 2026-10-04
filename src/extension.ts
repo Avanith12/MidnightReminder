@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { parseLocalDateTime } from "./midnight.ts";
 import { createReminderChecker, type ReminderChecker } from "./reminder.ts";
 
 /** How often Pi re-checks the time while a session is active. */
@@ -41,13 +42,39 @@ export default function midnightReminder(pi: ExtensionAPI): void {
   });
 
   // Manual trigger so the reminder can be demonstrated without waiting for 00:00.
-  pi.registerCommand("midnight-check", {
-    description: "Run the midnight reminder check now",
-    handler: async (_args, ctx) => {
-      const fired = checker?.check() ?? false;
+  // Accepts an optional simulated local time (YYYY-MM-DD HH:mm); with no
+  // argument it checks the real clock.
+  pi.registerCommand("bedtime-test", {
+    description:
+      "Run the bedtime reminder check now, optionally at a simulated local time (YYYY-MM-DD HH:mm)",
+    handler: async (args, ctx) => {
+      const raw = typeof args === "string" ? args.trim() : "";
+      let simulated: Date | undefined;
+
+      if (raw.length > 0) {
+        const parsed = parseLocalDateTime(raw);
+        if (parsed === null) {
+          if (ctx.hasUI) {
+            ctx.ui.notify(
+              `Invalid time "${raw}". Use YYYY-MM-DD HH:mm, for example /bedtime-test 2026-01-15 00:30.`,
+              "warning",
+            );
+          }
+          return;
+        }
+        simulated = parsed;
+      }
+
+      const fired = checker?.check(simulated) ?? false;
       if (ctx.hasUI) {
         ctx.ui.notify(
-          fired ? "Midnight reminder fired." : "No reminder needed right now.",
+          fired
+            ? simulated
+              ? `Bedtime reminder fired for ${raw}.`
+              : "Bedtime reminder fired."
+            : simulated
+              ? `No reminder for ${raw}: outside 00:00-06:00 or already reminded that day.`
+              : "No reminder needed right now.",
           "info",
         );
       }

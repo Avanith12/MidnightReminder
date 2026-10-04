@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   isWithinReminderWindow,
+  parseLocalDateTime,
   reminderDayKey,
   shouldRemind,
 } from "../src/midnight.ts";
@@ -54,6 +55,30 @@ describe("reminderDayKey", () => {
 
   it("differs across adjacent local days", () => {
     assert.notEqual(reminderDayKey(at(0, 30, 15)), reminderDayKey(at(0, 30, 16)));
+  });
+});
+
+describe("parseLocalDateTime", () => {
+  it("parses a local YYYY-MM-DD HH:mm timestamp", () => {
+    const parsed = parseLocalDateTime("2026-01-15 00:30");
+    assert.ok(parsed);
+    assert.equal(reminderDayKey(parsed), "2026-01-15");
+    assert.equal(parsed.getHours(), 0);
+    assert.equal(parsed.getMinutes(), 30);
+    assert.equal(isWithinReminderWindow(parsed), true);
+  });
+
+  it("accepts an ISO-style T separator and surrounding whitespace", () => {
+    assert.ok(parseLocalDateTime("  2026-01-15T03:00  "));
+  });
+
+  it("returns null for malformed or impossible values", () => {
+    assert.equal(parseLocalDateTime(""), null);
+    assert.equal(parseLocalDateTime("12:00"), null);
+    assert.equal(parseLocalDateTime("2026-13-15 00:30"), null);
+    assert.equal(parseLocalDateTime("2026-02-30 00:30"), null);
+    assert.equal(parseLocalDateTime("2026-01-15 24:00"), null);
+    assert.equal(parseLocalDateTime("2026-01-15 00:60"), null);
   });
 });
 

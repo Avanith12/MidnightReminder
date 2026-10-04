@@ -74,6 +74,36 @@ describe("createReminderChecker", () => {
     assert.equal(checker.lastRemindedDayKey(), null);
   });
 
+  it("supports explicit simulated times while keeping per-day dedupe", () => {
+    let current = at(12, 0);
+    const notifications: string[] = [];
+    const checker = createReminderChecker({
+      now: () => current,
+      notify: (message) => notifications.push(message),
+    });
+
+    assert.equal(checker.check(at(0, 30, 15)), true);
+    assert.equal(checker.check(at(3, 0, 15)), false);
+    assert.equal(checker.check(at(0, 30, 16)), true);
+
+    assert.deepEqual(notifications, [DEFAULT_REMINDER_MESSAGE, DEFAULT_REMINDER_MESSAGE]);
+    assert.equal(checker.lastRemindedDayKey(), "2026-01-16");
+  });
+
+  it("falls back to the injected clock when no simulated time is given", () => {
+    let current = at(1, 0);
+    const notifications: string[] = [];
+    const checker = createReminderChecker({
+      now: () => current,
+      notify: (message) => notifications.push(message),
+    });
+
+    assert.equal(checker.check(), true);
+    current = at(2, 0);
+    assert.equal(checker.check(), false);
+    assert.equal(notifications.length, 1);
+  });
+
   it("uses an injected message when provided", () => {
     let current = at(1, 0);
     const notifications: string[] = [];
