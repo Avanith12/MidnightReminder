@@ -175,4 +175,4 @@ midnight-reminder/
 
 ## License
 
-Private — for personal use with Pi.
+[MIT](LICENSE). Copyright (c) 2025 Midnight Reminder Contributors.
