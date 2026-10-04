@@ -2,6 +2,10 @@
 
 A [Pi](https://github.com/earendil-works/pi) extension that nudges you to wrap up and get some rest when the clock passes midnight.
 
+## Team
+
+Avanith Kanamarlapudi, Ayaz Mohammed
+
 ## What it does
 
 While a Pi session is active, Midnight Reminder silently checks the local time every minute. If the time is between **00:00** and **06:00** and you haven't been reminded yet for that calendar day, it sends a friendly notification:
