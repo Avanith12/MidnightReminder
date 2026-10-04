@@ -96,6 +96,24 @@ for genuine choices that are still unresolved and would change the scope,
 direction, or output of the work; the model should proceed without asking when
 the task is fully specified or a safe, clearly-stated assumption is enough.
 
+**How to run it**
+
+```bash
+pi --extension ./src/ask-user/extension.ts
+```
+
+1. **Ask a question and pick an option:**  
+   Use the ask_user tool. Ask me whether reminder state should last only for this session or be saved after Pi restarts. Give those two options. Recommend session-only.
+
+2. **Type a custom answer:**  
+   Use the ask_user tool again with the same question and the same two options. I want to type my own answer.
+
+3. **Cancel:**  
+   Use the ask_user tool again with the same question and the same two options. I will dismiss the dialog.
+
+4. **Do not ask:**  
+   The reminder state must last only for this session. State that in your reply. Do not ask me anything.
+
 | Input | Behavior |
 |---|---|
 | `question` (required) | The question shown in the dialog. |
