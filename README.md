@@ -87,6 +87,44 @@ Both outcomes print a clear message: either the reminder fired, or no reminder
 was needed (outside the window or already reminded that day). Invalid timestamps
 are reported without running the check.
 
+## Tools
+
+### `ask_user`
+
+The `ask_user` tool lets the model pause and ask you a question mid-turn. It is
+for genuine choices that are still unresolved and would change the scope,
+direction, or output of the work; the model should proceed without asking when
+the task is fully specified or a safe, clearly-stated assumption is enough.
+
+| Input | Behavior |
+|---|---|
+| `question` (required) | The question shown in the dialog. |
+| `reason` (required) | A short reason shown to the human explaining why they are being asked. Question, reason, and any recommendation are all shown in the dialog title. |
+| `options` | Exactly 2 or 3 suggested answers shown with `ctx.ui.select`. Labels must be unique and non-empty after trimming/case-folding. Omit `options` entirely to request free-form text. |
+| `recommendation` | Optional recommended answer, shown as `Recommended: ...`. It never overrides the human's choice; the result reports whether the answer contradicts it. |
+| `allowCustom` | Defaults to `true`. Set to `false` to hide the custom-answer entry. |
+
+The user can always pick **"Type something…"** (when custom answers are allowed)
+to answer in their own words via `ctx.ui.input`. A real option whose label happens
+to match the custom sentinel stays selectable: the tool generates a collision-free
+custom entry and never shows duplicate options.
+
+Every call ends in exactly one of three states:
+
+| State | Meaning |
+|---|---|
+| `answered` | The human chose an option or typed a non-blank answer. Use `wasCustom` and `answer` to tell the two apart. |
+| `cancelled` | The human dismissed a dialog, **or** submitted an empty/whitespace-only typed answer (flagged with `empty: true`). No default is ever invented. |
+| `unavailable` | The session has no interactive UI (`ctx.hasUI === false`), so no dialog was opened. |
+
+The model-facing details also include `question`, `reason`, `options`,
+`recommendation`, and `contradictsRecommendation`. Invalid options (wrong
+count, blank label, or duplicate labels) make the call fail loudly instead of
+silently degrading.
+
+The tool logic lives in `src/ask-user/contract.ts` (dependency-free and unit
+tested) and is wired to Pi in `src/ask-user/extension.ts`.
+
 ## Configuration
 
 The reminder window and message are currently defined in code:
@@ -121,9 +159,13 @@ npm run test:watch
 midnight-reminder/
 ├── src/
 │   ├── extension.ts   # Pi extension lifecycle & command
+│   ├── ask-user/
+│   │   ├── contract.ts  # Pure ask_user logic & schema
+│   │   └── extension.ts # Registers the ask_user tool
 │   ├── reminder.ts  # Stateful deduplication wrapper
 │   └── midnight.ts  # Pure time-window policy
 ├── test/
+│   ├── ask-user.test.ts
 │   ├── extension.test.ts
 │   ├── midnight.test.ts
 │   └── reminder.test.ts
