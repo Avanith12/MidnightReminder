@@ -10,7 +10,7 @@
     "test:watch": "node --test --watch"
   },
   "pi": {
-    "extensions": ["./src/extension.ts"]
+    "extensions": ["./src/extension.ts", "./src/ask-user/extension.ts"]
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
